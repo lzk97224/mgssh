@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
-	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -30,108 +27,6 @@ var DefaultCiphers = []string{
 	"aes256-cbc",
 }
 
-type HostConfig struct {
-	Name string `json:"name"`
-	Host string `json:"host"`
-	Port int    `json:"port"`
-	User string `json:"user"`
-	Pass string `json:"pass"`
-	Key  string `json:"key"`
-}
-
-func (h *HostConfig) Dail() error {
-	if len(h.Pass) >= 1 {
-		return dialSShWithPassword(h.Host, h.Port, h.User, h.Pass)
-	}
-	return dialSSHUseCommand(h.Host, h.Port, h.User, h.Key)
-}
-
-var HostConfigList []HostConfig
-var expectShellPath string
-
-func init() {
-	createExShell()
-	createHostConfigList()
-}
-
-func createExShell() {
-	var expectShell = `#!/usr/bin/expect
-
-set user [lindex $argv 0]
-set password [lindex $argv 3]
-set ip [lindex $argv 1]
-set port [lindex $argv 2]
-
-spawn /usr/bin/ssh -o ServerAliveInterval=60 -p $port $user@$ip
-expect {
-"*yes/no" { send "yes\r"; exp_continue }
-"*password:" { send "$password\r" }
-}
-interact
-`
-	temp, err := os.CreateTemp(os.TempDir(), "sh")
-	if err != nil {
-		panic(err)
-	}
-	_, err = temp.WriteString(expectShell)
-	if err != nil {
-		panic(err)
-	}
-	expectShellPath = temp.Name()
-}
-
-func createHostConfigList() {
-	readFile, err := os.ReadFile(getConfigFile())
-	if err != nil {
-		panic(err)
-	}
-	var config []HostConfig
-	err = json.Unmarshal(readFile, &config)
-	if err != nil {
-		panic(err)
-	}
-	HostConfigList = config
-}
-
-func getConfigFile() string {
-	runFile, _ := exec.LookPath(os.Args[0])
-	runFilePath, err := filepath.Abs(runFile)
-
-	dir := filepath.Dir(runFilePath)
-	filePath, err := fileExists(dir)
-	if err == nil {
-		return filePath
-	}
-	log.Printf("%v", err)
-
-	dir, err = os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
-	filePath, err = fileExists(dir)
-	if err == nil {
-		return filePath
-	}
-	log.Printf("%v", err)
-
-	dir, err = os.Getwd()
-	filePath, err = fileExists(dir)
-	if err == nil {
-		return filePath
-	}
-
-	log.Printf("%v", err)
-	panic(err)
-}
-func fileExists(dir string) (string, error) {
-	configName := "mgssh_config.json"
-	filePath := filepath.Join(dir, configName)
-	_, err := os.Stat(filePath)
-	if err != nil {
-		return "", fmt.Errorf("配置文件，%v，不存在,%w", filePath, err)
-	}
-	return filePath, nil
-}
 func main() {
 	var command string
 	for {
@@ -163,10 +58,6 @@ func main() {
 	clean()
 }
 
-func clean() {
-	os.Remove(expectShellPath)
-}
-
 func printServers() {
 	fmt.Println("----------服务器----------")
 	for index, hostConfig := range HostConfigList {
@@ -182,6 +73,7 @@ func dialSSHUseCommand(host string, port int, user string, key string) error {
 	var args []string
 	args = append(args, fmt.Sprintf("%s@%s", user, host))
 	args = append(args, "-p", fmt.Sprintf("%d", port))
+	args = append(args, "-o", "ServerAliveInterval=60")
 	if len(key) >= 1 {
 		args = append(args, "-i", key)
 	}
