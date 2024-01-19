@@ -1,0 +1,10 @@
+[
+  {
+    "name": "show on list",
+    "host": "ip",
+    "port": 22,
+    "user": "username",
+    "pass": "password",
+    "key": "key path"
+  }
+]
