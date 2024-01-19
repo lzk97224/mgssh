@@ -29,7 +29,7 @@ set password [lindex $argv 3]
 set ip [lindex $argv 1]
 set port [lindex $argv 2]
 
-spawn /usr/bin/ssh -o ServerAliveInterval=60 -p $port $user@$ip
+spawn /usr/bin/ssh -o ConnectTimeout=30 -o ServerAliveInterval=60 -p $port $user@$ip
 expect {
 "*yes/no" { send "yes\r"; exp_continue }
 "*password:" { send "$password\r" }

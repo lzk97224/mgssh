@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/term"
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -28,16 +30,9 @@ var DefaultCiphers = []string{
 }
 
 func main() {
-	var command string
 	for {
 		printServers()
-
-		var err error
-		_, err = fmt.Scanln(&command)
-		if err != nil {
-			fmt.Println(fmt.Errorf("输入错误:%w", err))
-			continue
-		}
+		command := getCommand()
 
 		if command == "q" {
 			break
@@ -65,15 +60,29 @@ func printServers() {
 	}
 	fmt.Println("-------------------------")
 	fmt.Println("退出输入'q'\n")
-	fmt.Print("请输入：")
+}
+func getCommand() string {
+	var command string
+	for {
+		fmt.Print("请输入：")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		command = scanner.Text()
+		command = strings.TrimSpace(command)
+		if len(command) >= 1 {
+			break
+		}
+	}
+	return command
 }
 
 func dialSSHUseCommand(host string, port int, user string, key string) error {
 
 	var args []string
-	args = append(args, fmt.Sprintf("%s@%s", user, host))
-	args = append(args, "-p", fmt.Sprintf("%d", port))
 	args = append(args, "-o", "ServerAliveInterval=60")
+	args = append(args, "-o", "ConnectTimeout=10")
+	args = append(args, "-p", fmt.Sprintf("%d", port))
+	args = append(args, fmt.Sprintf("%s@%s", user, host))
 	if len(key) >= 1 {
 		args = append(args, "-i", key)
 	}
