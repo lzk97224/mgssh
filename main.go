@@ -9,24 +9,29 @@ import (
 )
 
 func main() {
+	printHelp()
+	printServers()
 	for {
-		printServers()
 		command := getCommand()
+		switch command {
+		case "q":
+			return
+		case "p":
+			printServers()
+		case "h":
+			printHelp()
+		default:
+			atoi, err := strconv.Atoi(command)
+			if err != nil {
+				fmt.Println(fmt.Errorf("输入错误:%w", err))
+				continue
+			}
 
-		if command == "q" {
-			break
-		}
-
-		atoi, err := strconv.Atoi(command)
-		if err != nil {
-			fmt.Println(fmt.Errorf("输入错误:%w", err))
-			continue
-		}
-
-		hostConfig := HostConfigList[atoi]
-		err = hostConfig.Dail()
-		if err != nil {
-			fmt.Println(fmt.Errorf("连接失败:%w", err))
+			hostConfig := HostConfigList[atoi]
+			err = hostConfig.Dail()
+			if err != nil {
+				fmt.Println(fmt.Errorf("连接失败:%w", err))
+			}
 		}
 	}
 	clean()
@@ -38,7 +43,13 @@ func printServers() {
 		fmt.Println(index, hostConfig.Name)
 	}
 	fmt.Println("-------------------------")
-	fmt.Println("退出输入'q'\n")
+}
+func printHelp() {
+	fmt.Println()
+	fmt.Println("帮助信息----'h'")
+	fmt.Println("服务列表----'p'")
+	fmt.Println("退出输入----'q'")
+	fmt.Println()
 }
 func getCommand() string {
 	var command string
