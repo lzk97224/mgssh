@@ -100,9 +100,11 @@ func scpUp(args ...string) {
 	c := exec.Command("scp",
 		"-P", fmt.Sprintf("%v", config.Port),
 		args[0], fmt.Sprintf("%v@%v:%v", config.User, config.Host, args[2]))
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
-	c.Run()
+
+	exeShell(c, config.Pass, false)
+	//c.Stdout = os.Stdout
+	//c.Stderr = os.Stderr
+	//c.Run()
 }
 
 func printServers(...string) {

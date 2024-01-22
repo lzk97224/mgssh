@@ -13,40 +13,37 @@ var HostConfigList []HostConfig
 var expectShellPath string
 
 func init() {
-	createExShell()
+	//createExShell()
 	createHostConfigList()
 }
 
 func clean() {
-	os.Remove(expectShellPath)
+	//os.Remove(expectShellPath)
 }
 
-func createExShell() {
+func createExShell(cmd, pass string, interact bool) string {
 	var expectShell = `#!/usr/bin/expect
 
-set user [lindex $argv 0]
-set ip [lindex $argv 1]
-set port [lindex $argv 2]
-set password [lindex $argv 3]
-set timeout [lindex $argv 4]
-set interval [lindex $argv 5]
-
-spawn /usr/bin/ssh -o ConnectTimeout=$timeout -o ServerAliveInterval=$interval -p $port $user@$ip
+spawn %v
 expect {
 "*yes/no" { send "yes\r"; exp_continue }
-"*password:" { send "$password\r" }
+"*password:" { send "%v\r";exp_continue }
+"*login:*" { interact }
 }
-interact
 `
 	temp, err := os.CreateTemp(os.TempDir(), "sh")
 	if err != nil {
 		panic(err)
 	}
-	_, err = temp.WriteString(expectShell)
+	_, err = temp.WriteString(fmt.Sprintf(expectShell,
+		cmd,
+		pass,
+		//imix.If(interact, "interact", ""),
+	))
 	if err != nil {
 		panic(err)
 	}
-	expectShellPath = temp.Name()
+	return temp.Name()
 }
 
 func createHostConfigList() {

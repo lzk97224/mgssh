@@ -35,27 +35,38 @@ func (h *HostConfig) Dail() error {
 
 	var cmdPath string
 	var args []string
-	if len(pass) >= 1 {
-		cmdPath = "/usr/bin/expect"
-		args = append(args, expectShellPath)
-		args = append(args, user)
-		args = append(args, host)
-		args = append(args, fmt.Sprintf("%d", port))
-		args = append(args, pass)
-		args = append(args, fmt.Sprintf("%d", timeout))
-		args = append(args, fmt.Sprintf("%d", interval))
-	} else {
-		cmdPath = "/usr/bin/ssh"
-		args = append(args, "-o", fmt.Sprintf("ConnectTimeout=%d", timeout))
-		args = append(args, "-o", fmt.Sprintf("ServerAliveInterval=%d", interval))
-		args = append(args, "-p", fmt.Sprintf("%d", port))
-		args = append(args, fmt.Sprintf("%s@%s", user, host))
-		if len(key) >= 1 {
-			args = append(args, "-i", key)
-		}
+	//if len(pass) >= 1 {
+	//	cmdPath = "/usr/bin/expect"
+	//	args = append(args, expectShellPath)
+	//	args = append(args, user)
+	//	args = append(args, host)
+	//	args = append(args, fmt.Sprintf("%d", port))
+	//	args = append(args, pass)
+	//	args = append(args, fmt.Sprintf("%d", timeout))
+	//	args = append(args, fmt.Sprintf("%d", interval))
+	//} else {
+	//
+	//}
+	cmdPath = "/usr/bin/ssh"
+	args = append(args, "-o", fmt.Sprintf("ConnectTimeout=%d", timeout))
+	args = append(args, "-o", fmt.Sprintf("ServerAliveInterval=%d", interval))
+	args = append(args, "-p", fmt.Sprintf("%d", port))
+	args = append(args, fmt.Sprintf("%s@%s", user, host))
+	if len(key) >= 1 {
+		args = append(args, "-i", "\""+key+"\"")
 	}
 	cmd := exec.Command(cmdPath, args...)
-	return exe(cmd)
+
+	return exeShell(cmd, pass, true)
+
+}
+
+func exeShell(cmd *exec.Cmd, pass string, interact bool) error {
+	shellPath := createExShell(fmt.Sprintf("%v", cmd.String()), pass, interact)
+	defer func() { os.Remove(shellPath) }()
+
+	cmd1 := exec.Command("/usr/bin/expect", shellPath)
+	return exe(cmd1)
 }
 
 func exe(cmd *exec.Cmd) error {
