@@ -40,7 +40,7 @@ func init() {
 	RunCommandMap[Print] = printServers
 	RunCommandMap[Help] = printHelp
 	RunCommandMap[SCPUP] = scpUp
-	RunCommandMap[SCPDOWN] = printHelp
+	RunCommandMap[SCPDOWN] = scpDown
 }
 
 type CommandName string
@@ -97,14 +97,39 @@ func scpUp(args ...string) {
 	}
 
 	config := HostConfigList[atoi]
-	c := exec.Command("scp",
+	c := exec.Command(
+		"scp",
 		"-P", fmt.Sprintf("%v", config.Port),
-		args[0], fmt.Sprintf("%v@%v:%v", config.User, config.Host, args[2]))
+		fmt.Sprintf("\"%v\"", args[0]),
+		fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[2]),
+	)
 
 	exeShell(c, config.Pass, false)
-	//c.Stdout = os.Stdout
-	//c.Stderr = os.Stderr
-	//c.Run()
+}
+
+func scpDown(args ...string) {
+	//down 1 /tmp/sss.txt /sss
+	if len(args) != 3 {
+		fmt.Println("参数错误")
+		return
+	}
+	atoi, err := strconv.Atoi(args[0])
+	if err != nil {
+		fmt.Println(fmt.Errorf("输入错误:%w", err))
+		return
+	}
+
+	config := HostConfigList[atoi]
+	c := exec.Command(
+		"scp",
+		"-P", fmt.Sprintf("%v", config.Port),
+		fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[1]),
+		fmt.Sprintf("\"%v\"", args[2]),
+	)
+
+	fmt.Println(c.String())
+
+	exeShell(c, config.Pass, false)
 }
 
 func printServers(...string) {
