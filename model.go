@@ -57,15 +57,19 @@ func (h *HostConfig) Dail() error {
 	}
 	cmd := exec.Command(cmdPath, args...)
 
-	return exeShell(cmd, pass, true)
+	return exeShell(cmd, pass)
 
 }
 
-func exeShell(cmd *exec.Cmd, pass string, interact bool) error {
-	shellPath := createExShell(fmt.Sprintf("%v", cmd.String()), pass, interact)
+func exeShell(cmd *exec.Cmd, pass string) error {
+	shellPath, err := createExShell(fmt.Sprintf("%v", cmd.String()))
+	if err != nil {
+		return err
+	}
 	defer func() { os.Remove(shellPath) }()
 
-	cmd1 := exec.Command("/usr/bin/expect", shellPath)
+	fmt.Println(shellPath)
+	cmd1 := exec.Command("/usr/bin/expect", shellPath, pass)
 	return exe(cmd1)
 }
 

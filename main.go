@@ -104,7 +104,7 @@ func scpUp(args ...string) {
 		fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[2]),
 	)
 
-	exeShell(c, config.Pass, false)
+	exeShell(c, config.Pass)
 }
 
 func scpDown(args ...string) {
@@ -129,7 +129,7 @@ func scpDown(args ...string) {
 
 	fmt.Println(c.String())
 
-	exeShell(c, config.Pass, false)
+	exeShell(c, config.Pass)
 }
 
 func printServers(...string) {

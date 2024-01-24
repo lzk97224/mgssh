@@ -21,29 +21,29 @@ func clean() {
 	//os.Remove(expectShellPath)
 }
 
-func createExShell(cmd, pass string, interact bool) string {
+func createExShell(cmd string) (string, error) {
 	var expectShell = `#!/usr/bin/expect
+
+set pass [lindex $argv 0]
 
 spawn %v
 expect {
 "*yes/no" { send "yes\r"; exp_continue }
-"*password:" { send "%v\r";exp_continue }
+"*password:" { send "$pass\r";exp_continue }
 "*login:*" { interact }
 }
 `
 	temp, err := os.CreateTemp(os.TempDir(), "sh")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	_, err = temp.WriteString(fmt.Sprintf(expectShell,
 		cmd,
-		pass,
-		//imix.If(interact, "interact", ""),
 	))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return temp.Name()
+	return temp.Name(), nil
 }
 
 func createHostConfigList() {
