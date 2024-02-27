@@ -25,12 +25,14 @@ func createExShell(cmd string) (string, error) {
 	var expectShell = `#!/usr/bin/expect
 
 set pass [lindex $argv 0]
+set timeout 20
 
 spawn %v
 expect {
 "*yes/no" { send "yes\r"; exp_continue }
 "*password:" { send "$pass\r";exp_continue }
 "*login:*" { interact }
+"*00:*" { interact }
 }
 `
 	temp, err := os.CreateTemp(os.TempDir(), "sh")

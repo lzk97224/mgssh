@@ -97,11 +97,16 @@ func scpUp(args ...string) {
 	}
 
 	config := HostConfigList[atoi]
+	arg := []string{}
+	arg = append(arg, "-P", fmt.Sprintf("%v", config.Port))
+	if len(config.Key) >= 1 {
+		arg = append(arg, "-i", "\""+config.Key+"\"")
+	}
+	arg = append(arg, fmt.Sprintf("\"%v\"", args[0]))
+	arg = append(arg, fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[2]))
 	c := exec.Command(
 		"scp",
-		"-P", fmt.Sprintf("%v", config.Port),
-		fmt.Sprintf("\"%v\"", args[0]),
-		fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[2]),
+		arg...,
 	)
 
 	exeShell(c, config.Pass)
@@ -120,11 +125,16 @@ func scpDown(args ...string) {
 	}
 
 	config := HostConfigList[atoi]
+	arg := []string{}
+	arg = append(arg, "-P", fmt.Sprintf("%v", config.Port))
+	if len(config.Key) >= 1 {
+		arg = append(arg, "-i", "\""+config.Key+"\"")
+	}
+	arg = append(arg, fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[1]))
+	arg = append(arg, fmt.Sprintf("\"%v\"", args[2]))
 	c := exec.Command(
 		"scp",
-		"-P", fmt.Sprintf("%v", config.Port),
-		fmt.Sprintf("\"%v@%v:%v\"", config.User, config.Host, args[1]),
-		fmt.Sprintf("\"%v\"", args[2]),
+		arg...,
 	)
 
 	fmt.Println(c.String())
