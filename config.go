@@ -32,7 +32,7 @@ expect {
 "*yes/no" { send "yes\r"; exp_continue }
 "*password:" { send "$pass\r";exp_continue }
 "*login:*" { interact }
-"*00:*" { interact }
+"*0%%*" { interact }
 }
 `
 	temp, err := os.CreateTemp(os.TempDir(), "sh")
